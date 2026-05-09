@@ -28,6 +28,7 @@ try:
     from backend.app.file_scanner import scan_python_files
     from backend.app.parser import parse_python_file
     from backend.app.dependency_mapper import extract_dependencies
+    from backend.app.graph_builder import build_dependency_graph
 except ModuleNotFoundError:
     from repo_cloner import clone_repo
     from file_scanner import scan_python_files
@@ -103,7 +104,8 @@ def analyze_repo(data: RepoRequest):
             "status": "success",
             "repo_path": repo_path,
             "total_python_files": len(python_files),
-            "files": all_files_data
+            "files": all_files_data,
+            "dependency_graph": dependency_graph
         }
 
     except Exception as exc:
