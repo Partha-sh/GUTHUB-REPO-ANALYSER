@@ -2,7 +2,6 @@ import os
 import socket
 import sys
 from pathlib import Path
-
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -29,12 +28,17 @@ try:
     from backend.app.parser import parse_python_file
     from backend.app.dependency_mapper import extract_dependencies
     from backend.app.graph_builder import build_dependency_graph
+    from app.explainer import generate_file_explanation
+    from backend.app.ai_explainer import generate_ai_explanation
+
 except ModuleNotFoundError:
     from repo_cloner import clone_repo
     from file_scanner import scan_python_files
     from parser import parse_python_file
     from dependency_mapper import extract_dependencies
     from graph_builder import build_dependency_graph
+    from explainer import generate_file_explanation
+    from ai_explainer import generate_ai_explanation
 
 app = FastAPI()
 
@@ -81,10 +85,18 @@ def analyze_repo(data: RepoRequest):
 
         all_files_data = []
 
-        for file in python_files:
+        for file in python_files[:3]:
 
             parsed_data = parse_python_file(file)
             dependencies = extract_dependencies(file)
+
+            explanation = generate_ai_explanation({
+                "functions": parsed_data["functions"],
+                "async_functions": parsed_data["async_functions"],
+                "classes": parsed_data["classes"],
+                "routes": parsed_data["routes"],
+                "dependencies": dependencies
+            })
 
             file_data = {
                 "file": file,
@@ -93,7 +105,8 @@ def analyze_repo(data: RepoRequest):
                 "classes": parsed_data["classes"],
                 "imports": parsed_data["imports"],
                 "routes": parsed_data["routes"],
-                "dependencies": dependencies
+                "dependencies": dependencies,
+                "explanation":explanation
             }
 
             all_files_data.append(file_data)

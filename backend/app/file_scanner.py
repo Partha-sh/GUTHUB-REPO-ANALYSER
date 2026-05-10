@@ -11,7 +11,7 @@ def scan_python_files(repo_path):
 
     python_files = []
 
-    for root, dirs, files in os.walk(repo_path):
+    for root, dirs, files in os.walk(repo_path):   # os.walk help in recursively travelling in any folders
 
         dirs[:] = [d for d in dirs if d not in IGNORE_FOLDERS]
 
