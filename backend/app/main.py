@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 try:
@@ -14,6 +16,7 @@ except ImportError:  # pragma: no cover - optional during local bootstrap
 APP_DIR = Path(__file__).resolve().parent
 BACKEND_DIR = APP_DIR.parent
 REPO_ROOT = BACKEND_DIR.parent
+FRONTEND_DIR = REPO_ROOT / "frontend"
 
 for path in (str(REPO_ROOT), str(BACKEND_DIR)):
     if path not in sys.path:
@@ -42,6 +45,8 @@ except ModuleNotFoundError:
 
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
 
 class RepoRequest(BaseModel):
     repo_url: str
@@ -64,6 +69,11 @@ def _pick_available_port(host: str, preferred_port: int, max_attempts: int = 20)
 @app.get("/")
 def home():
     return {"message": "API Running"}
+
+
+@app.get("/app", include_in_schema=False)
+def frontend():
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 
 @app.post("/analyze")
